@@ -97,3 +97,8 @@ TODO:
 1. Testing
 1. Token authentication for REST API
 1. Bulk API
+
+License
+-------
+
+The Beebotte ruby gem is licensed under the terms of the MIT license. See the file LICENSE for details.
