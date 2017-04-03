@@ -50,11 +50,27 @@ b.get_resources(resource_name) {|r, code| puts "(#{code}) #{r.inspect}"}
 puts "\n\n---------\ndel_channel:"
 b.del_channel(channel_name) {|r, code| puts "(#{code}) #{r.inspect}"}
 
+
+
+
+s = Beebotte::Stream.new({token: "yourChannelToken"})
+s.connect()
+
+s.subscribe("#{channel_name}/#{resource_name}")
+
+s.publish(channel_name, resource_name, {status: 456})
+ 
+s.write(channel_name, resource_name, {status: 789})
+ 
+s.get { |topic, message| puts "\n\nTopic: #{topic}\nMessage: #{message}" }
+
+
 ```
 
 TODO:
 -----
 1. Documentation
 1. Testing
+1. Token authentication for REST API
 1. Bulk API
 1. Stream API

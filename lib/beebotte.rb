@@ -263,6 +263,84 @@ module Beebotte
   end
 
   class Stream
+    attr_accessor :token, :host, :port, :ssl
+    attr_reader :subscriptions
+
+    class NotConnected < StandardError; end
+    class NoSubscriptions < StandardError; end
+
+    def initialize(opts = {})
+      @token = opts[:token]
+      @secretKey = opts[:secret_key]
+      raise ArguementError, 'Must set token OR secret_key in opts' if (@token.nil? && @secretKey.nil?)
+      @host = opts[:host] || "mqtt.beebotte.com"
+      @port = opts[:port] || 1883
+      @ssl = opts[:ssl] || false
+      @subscriptions = []
+      @client = MQTT::Client.new
+    end
+
+    def connect
+      @client.disconnect() if @client.connected?
+      @client.host = @host
+      @client.port = @port
+      @client.ssl = @ssl
+      @client.username = @client.password = nil
+      @subscriptions = []
+      if @token
+        @client.username = "token:#{@token}"
+      else
+        @client.username = @secretKey
+      end
+      @client.connect()
+      @client.connected?
+    end
+
+    def disconnect
+      @subscriptions = []
+      @client.disconnect()
+      true
+    end
+
+    def connected?
+      @client.connected?
+    end
+
+    def get(&block)
+      raise NoSubscriptions if @subscriptions.length == 0
+      @client.get(&block)
+    end
+
+    def publish(channel, resource, data)
+      raise ArgumentError, 'Channel name must be a string' unless channel.is_a?(String) && channel.length.between?(2,30)
+      raise ArgumentError, 'Resource name must be a string' unless resource.is_a?(String) && resource.length.between?(2,30)
+      raise ArgumentError, 'Data name must be a Hash' unless data.is_a?(Hash)
+      data = {data: data, write: false }
+      @client.publish("#{channel}/#{resource}" , data.to_json)
+    end
+
+
+    def write(channel, resource, data)
+      raise ArgumentError, 'Channel name must be a string' unless channel.is_a?(String) && channel.length.between?(2,30)
+      raise ArgumentError, 'Resource name must be a string' unless resource.is_a?(String) && resource.length.between?(2,30)
+      raise ArgumentError, 'Data name must be a Hash' unless data.is_a?(Hash)
+      data = {data: data, write: true }
+      @client.publish("#{channel}/#{resource}" , data.to_json)
+
+    end
+
+    def subscribe(topic)
+      raise ArgumentError, "Topic must be in the form of 'channel/resource'" unless topic.is_a?(String) && topic.match(/^[a-zA-Z0-9_]*\/[a-zA-Z0-9_]*$/)
+      raise NotConnected unless connected?
+      return true if @subscriptions.include?(topic)
+      if @client.subscribe(topic)
+        @subscriptions << topic
+        return true
+      else
+        return false
+      end
+    end
+
 
   end
 end
