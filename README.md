@@ -2,10 +2,34 @@ Beebotte ruby gem
 =================
 
 
-THIS IS ALPHA SOFTWARE - USE AT YOUR OWN PERIL
+**THIS IS ALPHA SOFTWARE - USE AT YOUR OWN PERIL**
 
-Example usage:
---------------
+
+Basic Usage
+-----------
+
+Install the gem: `gem install beebotte`
+
+In your ruby code:
+```
+require 'beebotte'
+```
+
+
+There are two main classes: `Connector` and `Stream`.  The Connector class 
+implements the REST API and the Stream class implements the MQTT connection
+ to Beebotte.
+ 
+ Please see the Beebotte document here: https://beebotte.com/overview for 
+ more details on their implmentation.
+ 
+**Currently the Connector class only works with API and Secret key, Token 
+ authentication is not yet supported.**
+
+
+
+Full api examples:
+------------------------
 ```
 b = Beebotte::Connector.new("<yourApiKey>", "<yourSecretKey>", 'api.beebotte.com', 443)
 
@@ -73,4 +97,3 @@ TODO:
 1. Testing
 1. Token authentication for REST API
 1. Bulk API
-1. Stream API
