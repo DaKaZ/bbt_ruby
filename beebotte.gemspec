@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'openssl'
   spec.add_runtime_dependency 'json'
-  spec.add_runtime_dependency 'rest-client', '>= 2.0.0'
+  spec.add_runtime_dependency 'rest-client', '>= 1.8.0'
   spec.add_runtime_dependency 'classy_hash'
   spec.add_runtime_dependency 'mqtt'
   spec.add_development_dependency "rspec"
