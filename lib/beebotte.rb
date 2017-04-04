@@ -83,7 +83,11 @@ module Beebotte
 
       body = {data: data}
       response = post_data("/v1/data/write/#{channel}/#{resource}", body.to_json)
-      block.call(response.body, response.code) if block
+      if block
+        block.call(response.body, response.code)
+      else
+        (response.code >= 200 && response.code < 300) ? true : false
+      end
     end
 
     # publish transient information
@@ -93,7 +97,11 @@ module Beebotte
       raise ArgumentError, 'Data must be a hash object' unless data.is_a?(Hash)
       body = {data: data}
       response = post_data("/v1/data/publish/#{channel}/#{resource}", body.to_json)
-      block.call(response.body, response.code) if block
+      if block
+        block.call(response.body, response.code)
+      else
+        (response.code >= 200 && response.code < 300) ? true : false
+      end
     end
 
     # Read persisted messages from the specified channel and resource
@@ -110,18 +118,26 @@ module Beebotte
       rtn = {}
       uri = "/v1/data/read/#{params[:channel]}/#{params[:resource]}"
       [:channel, :resource].each {|k| params.delete(k) }
-      puts "PARAMS: #{params.inspect}"
       response = get_data(uri, params)
       rtn = JSON.parse(response.body) if response.code >= 200 && response.code < 300
-      block.call(rtn, response.code) if block
+      if block
+        block.call(rtn, response.code)
+      else
+        (response.code >= 200 && response.code < 300) ? rtn : nil
+      end
+
     end
 
     def get_connections(user=nil, &block)
       resource = user.nil? ? [] : {}
       uri = "/v1/connections" + (resource.is_a?(String) ? "/#{resource}" : '')
       response = get_data(uri)
-      resource = JSON.parse(response.body) if response.code >= 200 && response.code < 300
-      block.call(resource, response.code) if block
+      resource = JSON.parse(response.body) if
+      if block
+        block.call(resource, response.code)
+      else
+        (response.code >= 200 && response.code < 300) ? resource : nil
+      end
     end
 
     def get_conection(user, &block)
@@ -136,7 +152,11 @@ module Beebotte
       uri = "/v1/channels" + (channel.is_a?(String) ? "/#{channel}" : '')
       response = get_data(uri)
       rtn = JSON.parse(response.body) if response.code >= 200 && response.code < 300
-      block.call(rtn, response.code) if block
+      if block
+        block.call(rtn, response.code)
+      else
+        (response.code >= 200 && response.code < 300) ? rtn : nil
+      end
     end
 
     def get_channel(channel, &block)
@@ -155,14 +175,22 @@ module Beebotte
       if response.code >= 200 && response.code < 300
         get_channel(channel[:name], &block)
       else
-        block.call({}, response.code) if block
+        if block
+          block.call({}, response.code)
+        else
+          return false
+        end
       end
     end
 
     def del_channel(channel, &block)
       raise ArgumentError, 'Channel name must be a string' unless channel.is_a?(String)
       response = del_data("/v1/channels/#{channel}")
-      block.call(response.body, response.code) if block
+      if block
+        block.call(response.body, response.code)
+      else
+        return (response.code >= 200 && response.code < 300) ? true : false
+      end
     end
 
     def get_resources(channel, resource='*', &block)
@@ -173,7 +201,11 @@ module Beebotte
       }
       response = get_data("/v1/channels/#{channel}/resources", params)
       rtn = JSON.parse(response.body) if response.code >= 200 && response.code < 300
-      block.call(rtn, response.code) if block
+      if block
+        block.call(rtn, response.code)
+      else
+        return (response.code >= 200 && response.code < 300) ? rtn : nil
+      end
     end
 
     def get_resource(channel, resource, &block)
@@ -194,7 +226,12 @@ module Beebotte
       if response.code >= 200 && response.code < 300
         get_resource(channel, resource[:name], &block)
       else
-        block.call({}, response.code) if block
+        if block
+          block.call({}, response.code)
+        else
+          return false
+        end
+
       end
     end
 
@@ -202,7 +239,11 @@ module Beebotte
       raise ArgumentError, 'Channel name must be a string' unless channel.is_a?(String)
       raise ArgumentError, 'Resource name must be a string' unless resource.is_a?(String)
       response = del_data("/v1/channels/#{channel}/resources/#{resource}")
-      block.call(response.body, response.code) if block
+      if block
+        block.call(response.body, response.code)
+      else
+        return (response.code >= 200 && response.code < 300) ? true : false
+      end
     end
 
     private
@@ -218,7 +259,6 @@ module Beebotte
       signature = get_signature('GET', uri, @headers, @secretKey)
       @headers["Authorization"] = "#{@apiKey}:#{signature}"
       url = "#{@protocol}://#{@hostname}:#{@port}#{uri}"
-      puts "URL: #{url}"
       response = RestClient.get(url, @headers)
     end
 
@@ -227,8 +267,6 @@ module Beebotte
       signature = get_signature('POST', uri, @headers, @secretKey)
       @headers["Authorization"] = "#{@apiKey}:#{signature}"
       url = "#{@protocol}://#{@hostname}:#{@port}#{uri}"
-      puts "URL: #{url}"
-      puts "BODY: #{body}"
       response = RestClient.post(url, body, @headers)
     end
 
@@ -237,7 +275,6 @@ module Beebotte
       signature = get_signature('DELETE', uri, @headers, @secretKey)
       @headers["Authorization"] = "#{@apiKey}:#{signature}"
       url = "#{@protocol}://#{@hostname}:#{@port}#{uri}"
-      puts "URL: #{url}"
       response = RestClient.delete(url, @headers)
     end
 
@@ -247,14 +284,10 @@ module Beebotte
       raise ArgumentError, 'Invalid method' unless (method == 'GET' || method == 'PUT' || method == 'POST' || method == 'DELETE')
       raise ArgumentError, 'Invalid path' unless path.is_a?(String) && path.match(/^\//)
       stringToSign = "#{method}\n#{headers['Content-MD5']}\n#{headers["Content-type"]}\n#{headers["Date"]}\n#{path}"
-      puts "stiringToSign= \"#{stringToSign}\""
       signature = sha1_sign(secretKey, stringToSign)
     end
 
     def sha1_sign(secretKey, stringToSign)
-      # digest = OpenSSL::Digest.new('sha1')
-      # hmac = OpenSSL::HMAC.digest(digest, secretKey, stringToSign)
-      # signature = Base64.strict_encode64(hmac)
       hmac = HMAC::SHA1.new(secretKey)
       hmac.update(stringToSign)
       Base64.strict_encode64("#{hmac.digest}")
