@@ -12,6 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = "Beebotte REST API connector"
   spec.description   = "A pure ruby implementation of the BBT connector for beebotte's REST api"
   spec.homepage      = "https://github.com/DaKaZ/bbt_ruby"
+  spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
@@ -19,10 +20,9 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-
-  spec.add_runtime_dependency 'openssl'
+  spec.add_runtime_dependency 'ruby-hmac'
   spec.add_runtime_dependency 'json'
-  spec.add_runtime_dependency 'rest-client', '>= 1.8.0'
+  spec.add_runtime_dependency 'rest-client', '>= 1.8.0', '< 2.0.0'
   spec.add_runtime_dependency 'classy_hash'
   spec.add_runtime_dependency 'mqtt'
   spec.add_development_dependency "rspec"

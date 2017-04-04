@@ -1,7 +1,7 @@
-require "beebotte/version"
-
 module Beebotte
-  require 'openssl'
+  require "beebotte/version"
+  require 'hmac-sha1'
+  require 'base64'
   require 'json'
   require 'rest-client'
   require 'base64'
@@ -252,9 +252,12 @@ module Beebotte
     end
 
     def sha1_sign(secretKey, stringToSign)
-      digest = OpenSSL::Digest.new('sha1')
-      hmac = OpenSSL::HMAC.digest(digest, secretKey, stringToSign)
-      signature = Base64.strict_encode64(hmac)
+      # digest = OpenSSL::Digest.new('sha1')
+      # hmac = OpenSSL::HMAC.digest(digest, secretKey, stringToSign)
+      # signature = Base64.strict_encode64(hmac)
+      hmac = HMAC::SHA1.new(secretKey)
+      hmac.update(stringToSign)
+      Base64.strict_encode64("#{hmac.digest}")
     end
 
     def get_useragent_string
