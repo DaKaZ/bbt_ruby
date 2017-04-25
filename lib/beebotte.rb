@@ -66,11 +66,11 @@ module Beebotte
           channel: CH::G.string_length(2..30),
           resource: CH::G.string_length(2..30),
           limit: [:optional, 1..2000 ],
-          'time-range': [:optional, String],
-          'start-time': [:optional, String],
-          'end-time': [:optional, String],
+          'time-range' => [:optional, String],
+          'start-time' => [:optional, String],
+          'end-time' => [:optional, String],
           filter: [:optional, String],
-          'sample-rate': [:optional, 1..10000]
+          'sample-rate' => [:optional, 1..10000]
       }
 
     end
@@ -132,7 +132,7 @@ module Beebotte
       resource = user.nil? ? [] : {}
       uri = "/v1/connections" + (resource.is_a?(String) ? "/#{resource}" : '')
       response = get_data(uri)
-      resource = JSON.parse(response.body) if
+      resource = JSON.parse(response.body) if response.code >= 200 && response.code < 300
       if block
         block.call(resource, response.code)
       else
